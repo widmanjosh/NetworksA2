@@ -3,27 +3,30 @@ from common import *
 class sender:
     RTT = 20
     
-    def isCorrupted (self, packet):
+    def isCorrupted(self, packet):
         '''Checks if a received packet (acknowledgement) has been corrupted
         during transmission.
         Return true if computed checksum is different than packet checksum.
         '''
-
-        return
+        if packet.checksum != checksumCalc(packet.payload):
+            return True
+        return False
 
     def isDuplicate(self, packet):
         '''checks if an acknowledgement packet is duplicate or not
         similar to the corresponding function in receiver side
         '''
-
-        return
+        if packet.ackNum != self.seqNum:
+            return True
+        return False
  
     def getNextSeqNum(self):
         '''generate the next sequence number to be used.
         '''
-
- 
-        return 
+        if self.seqNum == 0:
+            return 1
+        else:
+            return 0
 
     def __init__(self, entityName, ns):
         self.entity = entityName
@@ -34,6 +37,8 @@ class sender:
         '''initialize the sequence number and the packet in transit.
         Initially there is no packet is transit and it should be set to None
         '''
+        self.seqNum = 0
+        self.inTransit = None
         return
 
     def timerInterrupt(self):
@@ -43,7 +48,8 @@ class sender:
         the timeout to be twice the RTT.
         You never call this function. It is called by the simulator.
         '''
-        
+        self.networkSimulator.udtSend(self.entity, self.inTransit)
+        self.networkSimulator.startTimer(self.entity, RTT*2)
         return
 
 
@@ -53,7 +59,11 @@ class sender:
         It also start the timer.
         It must ignore the message if there is one packet in transit
         '''
-
+        if self.inTransit is not None:
+            packet = Packet(self.seqNum, self.seqNum, checksumCalc(message.data), message.data)
+            self.networkSimulator.udtSend(self.entity, packet)
+            self.networkSimulator.startTimer(self.entity, RTT*2)
+            self.inTransit = packet
         return
  
     
@@ -68,5 +78,8 @@ class sender:
         not do anything and the packet will be sent again since the
         timer will be expired and timerInterrupt will be called by the simulator.
         '''
-
+        if not (isCorrupted(packet) or isDuplicate(packet)):
+            stopTimer(self.entity)
+            self.inTransit = None
+            self.seqNum = getNextSeqNum()
         return 

@@ -4,8 +4,11 @@ TRACE = 1
 MAXDATASIZE = 20;   # This constant controls the maximum size of the buffer in a Message and in a Packet
 
 def checksumCalc(payload):
-    #The implemention of function that calculates checksum goes here
-    return 
+    checksum = f'{payload:08b}'
+    checksum = checksum.replace('1', '2')
+    checksum = checksum.replace('0', '1')
+    checksum = checksum.replace('2', '0')
+    return checksum
 
 
 class Packet:
