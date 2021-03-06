@@ -17,7 +17,10 @@ class receiver:
     
     def getNextExpectedSeqNum(self):
         '''The expected sequence numbers are 0 or 1'''
-        return
+        if self.expectedSequenceNumber == 0:
+            return 1
+
+        return 0
     
     
     def __init__(self, entityName, ns):
@@ -45,5 +48,27 @@ class receiver:
         If packet is OK (not a duplicate or corrupted), deliver it to the
         application layer and send an acknowledgement to the sender
         '''
+
+        if (self.isCorrupted(self,packet)) or (self.isDuplicate(self,packet)):
+            print("***Wrong Packet***")
+            if (packet.seqNum == 0):
+
+                packet.ackNum = 1
+
+                print("udtSend: seqNum: {} ackNum: {} checksum: {} payload: ".format(packet.seqNum, packet.ackNum,packet.checksum))
+                print("udtSend: SIMULATING PACKET BEING CORRUPTED")
+                self.networkSimulator.udtSend(self.entity,packet)
+
+            else:
+                packet.ackNum = 0
+                print("udtSend: seqNum: {} ackNum: {} checksum: {} payload: ".format(packet.seqNum, packet.ackNum,packet.checksum))
+                print("udtSend: SIMULATING PACKET BEING CORRUPTED")
+                self.networkSimulator.udtSend(self.entity,packet)
+        else:
+            packet.ackNum = packet.seqNum
+            print("Receiving the data and sending the acknowledgement {}".format(packet.payload))
+            print("udtSend: seqNum: {} ackNum: {} checksum: {} payload: ".format(packet.seqNum,packet.ackNum,packet.checksum))
+            self.networkSimulator.udtSend(self.entity, packet)
+
 
         return
