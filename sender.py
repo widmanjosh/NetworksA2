@@ -38,6 +38,7 @@ class sender:
         Initially there is no packet is transit and it should be set to None
         '''
         self.seqNum = 0
+        self.ackNum = 0
         self.inTransit = None
         return
 
@@ -60,15 +61,16 @@ class sender:
         It must ignore the message if there is one packet in transit
         '''
         if self.inTransit is not None:
-            packet = Packet(self.seqNum, self.seqNum, checksumCalc(message.data), message.data)
+            packet = Packet(self.seqNum, self.ackNum, checksumCalc(message.data), message.data)
+            print('udtSend: seqNum: {0} ackNum: {1} checksum: {2} payload: {3}'.format(packet.seqNum, packet.ackNum, packet.checksum, packet.payload))
             self.networkSimulator.udtSend(self.entity, packet)
+            print('startTimer: starting timer at {}'.format(self.networkSimulator.time))
             self.networkSimulator.startTimer(self.entity, RTT*2)
             self.inTransit = packet
         return
  
     
     def input(self, packet):
-
         '''If the acknowlegement packet isn't corrupted or duplicate, 
         transmission is complete. Therefore, indicate there is no packet
         in transition.
@@ -79,7 +81,9 @@ class sender:
         timer will be expired and timerInterrupt will be called by the simulator.
         '''
         if not (isCorrupted(packet) or isDuplicate(packet)):
+            print('stopTimer: stopping timer at {}'.format(self.networkSimulator.time))
             stopTimer(self.entity)
             self.inTransit = None
+            self.ackNum = packet.ackNum
             self.seqNum = getNextSeqNum()
         return 
