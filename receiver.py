@@ -5,7 +5,7 @@ class receiver:
     def isCorrupted(self, packet):
         ''' Checks if a received packet has been corrupted during transmission.
         Return true if computed checksum is different than packet checksum.'''
-        if packet.checksum != checksumCalc(packet):
+        if packet.checksum != checksumCalc(packet.payload):
                 return True
         return False
    
